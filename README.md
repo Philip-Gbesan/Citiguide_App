@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # citiguide_app
 
 A new Flutter project.
@@ -199,4 +198,3 @@ For questions or support, reach out to the eProjects Team.
 
 **Made with ❤️ using Flutter**
 
->>>>>>> e46c2c8e915aa3ee1bd1a4dd908420d437ab7e4a

@@ -1,9 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
   final String uid;
   final String name;
   final String email;
   final String? profileImageUrl;
-  final String role; // "user" or "admin"
+  final String role;
+  final bool isBanned;
+  final String? banReason;
+  final DateTime? bannedAt;
 
   UserModel({
     required this.uid,
@@ -11,6 +16,9 @@ class UserModel {
     required this.email,
     this.profileImageUrl,
     this.role = "user",
+    this.isBanned = false,
+    this.banReason,
+    this.bannedAt,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data) {
@@ -20,6 +28,11 @@ class UserModel {
       email: data['email'] ?? '',
       profileImageUrl: data['profileImageUrl'],
       role: data['role'] ?? 'user',
+      isBanned: data['isBanned'] ?? false,
+      banReason: data['banReason'],
+      bannedAt: data['bannedAt'] != null
+          ? (data['bannedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -30,6 +43,9 @@ class UserModel {
       'email': email,
       'profileImageUrl': profileImageUrl,
       'role': role,
+      'isBanned': isBanned,
+      'banReason': banReason,
+      'bannedAt': bannedAt != null ? Timestamp.fromDate(bannedAt!) : null,
     };
   }
 }
