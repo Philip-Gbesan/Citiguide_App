@@ -1,57 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/city_service.dart';
-import '../../models/city_model.dart';
-import 'admin_city_attraction_page.dart';
+import '../../models/category_model.dart';
+import '../../services/category_service.dart';
+import 'category_attractions_page.dart';
 
-class ManageAttractionsPage extends ConsumerStatefulWidget {
+class ManageAttractionsPage extends ConsumerWidget {
   const ManageAttractionsPage({super.key});
 
   @override
-  ConsumerState<ManageAttractionsPage> createState() => _ManageAttractionsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryService = CategoryService();
 
-class _ManageAttractionsPageState extends ConsumerState<ManageAttractionsPage> {
-  final cityService = CityService();
+    return Scaffold(
+      appBar: AppBar(title: Text('Manage Attractions')),
+      body: FutureBuilder<List<CategoryModel>>(
+        future: categoryService.getCategories(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<CityModel>>(
-      stream: cityService.getCitiesStream(),
-      builder: (context, citySnapshot) {
-        if (citySnapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-        final cities = citySnapshot.data ?? [];
+          final categories = snapshot.data ?? [];
 
-        if (cities.isEmpty) {
-          return Scaffold(
-            body: Center(child: Text('No cities found.')),
-          );
-        }
+          if (categories.isEmpty) {
+            return Center(child: Text('No categories found.'));
+          }
 
-        return Scaffold(
-          appBar: AppBar(title: Text('Manage Attractions')),
-          body: ListView.builder(
+          return ListView.builder(
             padding: EdgeInsets.all(12),
-            itemCount: cities.length,
+            itemCount: categories.length,
             itemBuilder: (context, index) {
-              final city = cities[index];
+              final category = categories[index];
+
               return Card(
+                margin: EdgeInsets.symmetric(vertical: 6),
                 child: ListTile(
-                  title: Text(city.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(city.description),
+                  title: Text(
+                    category.name,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 18),
                   onTap: () {
+                    // Navigate to CategoryAttractionsPage
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CityAttractionsPage(
-                          cityId: city.id,
-                          cityName: city.name,
+                        builder: (context) => CategoryAttractionsPage(
+                          categoryId: category.id,
+                          categoryName: category.name,
                         ),
                       ),
                     );
@@ -59,9 +59,9 @@ class _ManageAttractionsPageState extends ConsumerState<ManageAttractionsPage> {
                 ),
               );
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

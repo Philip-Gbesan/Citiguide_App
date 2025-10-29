@@ -18,7 +18,7 @@ class UserDashboard extends StatefulWidget {
 class _UserDashboardState extends State<UserDashboard> {
   final AuthService _authService = AuthService();
   int _selectedIndex = 2; // Default center "CitiApp"
-  final Color appColor = const Color(0xFF007BFF); // App theme color
+  final Color appColor = Color(0xFF007BFF); // App theme color
 
   // Controllers for search
   String _searchQuery = '';
@@ -29,7 +29,7 @@ class _UserDashboardState extends State<UserDashboard> {
       if (!context.mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const UserLoginPage()),
+        MaterialPageRoute(builder: (_) => UserLoginPage()),
       );
     } catch (e) {
       if (context.mounted) {
@@ -68,7 +68,7 @@ class _UserDashboardState extends State<UserDashboard> {
                 Icon(icon, size: isActive ? 28 : 24, color: appColor),
           )
               : Icon(icon, size: isActive ? 28 : 24, color: appColor),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
@@ -102,7 +102,7 @@ class _UserDashboardState extends State<UserDashboard> {
 
   // Search page (you can customize)
   Widget _buildSearchPage() {
-    return const Center(child: Text('Search Page'));
+    return Center(child: Text('Search Page'));
   }
 
   // CitiApp / main home page
@@ -111,11 +111,11 @@ class _UserDashboardState extends State<UserDashboard> {
       children: [
         // Search bar
         Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(12.0),
           child: TextField(
             decoration: InputDecoration(
               hintText: 'Search up cities to explore',
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -136,13 +136,13 @@ class _UserDashboardState extends State<UserDashboard> {
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No cities available yet.'));
+                return  Center(child: Text('No cities available yet.'));
               }
 
               final allCities = snapshot.data!.docs;
@@ -153,7 +153,7 @@ class _UserDashboardState extends State<UserDashboard> {
               }).toList();
 
               if (filteredCities.isEmpty) {
-                return const Center(child: Text('No cities match your search.'));
+                return Center(child: Text('No cities match your search.'));
               }
 
               return LayoutBuilder(
@@ -164,7 +164,7 @@ class _UserDashboardState extends State<UserDashboard> {
                   if (width > 900) crossAxisCount = 4;
 
                   return GridView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 12,
@@ -184,7 +184,7 @@ class _UserDashboardState extends State<UserDashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => CityAttractionsPage(
+                              builder: (_) => UsersCityAttractionsPage(
                                 cityId: cityId,
                                 cityName: cityName,
                               ),
@@ -206,20 +206,20 @@ class _UserDashboardState extends State<UserDashboard> {
                                   fit: BoxFit.cover,
                                   errorBuilder:
                                       (context, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, size: 60),
+                                  Icon(Icons.broken_image, size: 60),
                                 )
                                     : Container(
                                   color: Colors.grey[300],
-                                  child: const Icon(Icons.location_city, size: 60),
+                                  child: Icon(Icons.location_city, size: 60),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: EdgeInsets.all(8),
                                 color: Colors.grey[100],
                                 child: Text(
                                   cityName,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                               ),
@@ -244,23 +244,23 @@ class _UserDashboardState extends State<UserDashboard> {
       appBar: AppBar(
         backgroundColor: appColor,
         leading: IconButton(
-          icon: const Icon(Icons.person_outline),
+          icon: Icon(Icons.person_outline),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const UserProfilePage()),
+              MaterialPageRoute(builder: (_) => UserProfilePage()),
             );
           },
         ),
-        title: const Text('Beautiful Cities to Explore', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Beautiful Cities to Explore', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite_border),
+            icon: Icon(Icons.favorite_border),
             onPressed: () => _onNavItemTapped(1),
           ),
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(Icons.settings),
             onPressed: () => _onNavItemTapped(3),
           ),
         ],

@@ -5,21 +5,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/review_provider.dart';
 import '../../models/review_model.dart';
 
-class AddReviewWidget extends ConsumerStatefulWidget {
+class AddReviewPage extends ConsumerStatefulWidget {
   final String cityId;
   final String attractionId;
 
-  const AddReviewWidget({
+  const AddReviewPage({
     super.key,
     required this.cityId,
     required this.attractionId,
   });
 
   @override
-  ConsumerState<AddReviewWidget> createState() => _AddReviewWidgetState();
+  ConsumerState<AddReviewPage> createState() => _AddReviewWidgetState();
 }
 
-class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
+class _AddReviewWidgetState extends ConsumerState<AddReviewPage> {
   final _formKey = GlobalKey<FormState>();
   final _commentController = TextEditingController();
   double _rating = 3;
@@ -71,7 +71,7 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
         rating: _rating,
         comment: _commentController.text.trim(),
         approved: false,
-        createdAt: DateTime.now(), // ✅ Works perfectly now
+        createdAt: DateTime.now(),
         likes: {},
       );
 
@@ -79,7 +79,7 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
       await service.addReview(widget.cityId, widget.attractionId, review);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Review submitted! Waiting for admin approval.'),
         ),
       );
@@ -98,17 +98,17 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: EdgeInsets.symmetric(vertical: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Leave a Review',
+              Text('Leave a Review',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Row(
                 children: List.generate(5, (index) {
                   final starIndex = index + 1;
@@ -123,7 +123,7 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
               ),
               TextFormField(
                 controller: _commentController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Write your comment',
                   border: OutlineInputBorder(),
                 ),
@@ -131,13 +131,13 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
                 validator: (val) =>
                 val == null || val.isEmpty ? 'Please write something' : null,
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               _isSubmitting
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
                 onPressed: _submitReview,
-                icon: const Icon(Icons.send),
-                label: const Text('Submit Review'),
+                icon: Icon(Icons.send),
+                label: Text('Submit Review'),
               ),
             ],
           ),

@@ -65,7 +65,7 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
   Future<void> _toggleFavorite(Map<String, dynamic> attractionData) async {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to add favorites')),
+        SnackBar(content: Text('Please log in to add favorites')),
       );
       return;
     }
@@ -160,7 +160,7 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
           final longitude = (attraction['longitude'] ?? 0).toString();
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -178,7 +178,7 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                           errorBuilder: (_, __, ___) => Container(
                             height: 220,
                             color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image,
+                            child: Icon(Icons.broken_image,
                                 size: 80, color: Colors.white70),
                           ),
                         ),
@@ -187,7 +187,7 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                         top: 12,
                         right: 12,
                         child: _loadingFavorite
-                            ? const SizedBox(
+                            ? SizedBox(
                           width: 28,
                           height: 28,
                           child: CircularProgressIndicator(
@@ -208,30 +208,30 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                       ),
                     ],
                   ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // NAME
                 Text(name,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // DESCRIPTION
                 Text(description,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 16, color: Colors.black87)),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // ADDRESS
                 if (address.isNotEmpty)
                   Row(
                     children: [
-                      const Icon(Icons.home_outlined, color: Colors.blue),
-                      const SizedBox(width: 8),
+                      Icon(Icons.home_outlined, color: Colors.blue),
+                      SizedBox(width: 8),
                       Expanded(child: Text(address)),
                     ],
                   ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // PHONE
                 if (phone.isNotEmpty)
@@ -239,11 +239,11 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                     onTap: () => _launchPhone(phone),
                     child: Row(
                       children: [
-                        const Icon(Icons.phone, color: Colors.green),
-                        const SizedBox(width: 8),
+                        Icon(Icons.phone, color: Colors.green),
+                        SizedBox(width: 8),
                         Text(
                           phone,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             color: Colors.blueAccent,
                             decoration: TextDecoration.underline,
@@ -252,27 +252,27 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // COORDINATES + MAP
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, color: Colors.red),
-                    const SizedBox(width: 8),
+                    Icon(Icons.location_on_outlined, color: Colors.red),
+                    SizedBox(width: 8),
                     Text('Lat: $latitude, Lng: $longitude'),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 ElevatedButton.icon(
                   onPressed: () {
                     final lat = double.tryParse(latitude);
                     final lng = double.tryParse(longitude);
                     if (lat != null && lng != null) _openInMap(lat, lng);
                   },
-                  icon: const Icon(Icons.map),
-                  label: const Text('Open in Google Maps'),
+                  icon: Icon(Icons.map),
+                  label: Text('Open in Google Maps'),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // REVIEWS SECTION
                 StreamBuilder<List<ReviewModel>>(
@@ -283,19 +283,19 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                   builder: (context, reviewSnapshot) {
                     if (reviewSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child: CircularProgressIndicator());
                     }
 
                     if (reviewSnapshot.hasError) {
                       return Text(
                         'Error loading reviews: ${reviewSnapshot.error}',
-                        style: const TextStyle(color: Colors.red),
+                        style: TextStyle(color: Colors.red),
                       );
                     }
 
                     if (!reviewSnapshot.hasData ||
                         reviewSnapshot.data!.isEmpty) {
-                      return const Text('No approved reviews yet.');
+                      return Text('No approved reviews yet.');
                     }
 
                     final reviews = reviewSnapshot.data!;
@@ -308,14 +308,14 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                             user != null && likes.containsKey(user!.uid);
 
                         return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          margin: EdgeInsets.symmetric(vertical: 6),
                           child: ListTile(
                             title: Text(r.userName),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(r.comment),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 Row(
                                   children: [
                                     IconButton(
@@ -354,10 +354,10 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                   },
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // ADD REVIEW
-                AddReviewWidget(
+                AddReviewPage(
                   cityId: widget.cityId,
                   attractionId: widget.attractionId,
                 ),

@@ -23,8 +23,8 @@ class _EditCityPageState extends ConsumerState<EditCityPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.city.name);
-    _descController = TextEditingController(text: widget.city.description);
-    _imageUrlController = TextEditingController(text: widget.city.imageUrl);
+    _descController = TextEditingController(text: widget.city.description ?? '');
+    _imageUrlController = TextEditingController(text: widget.city.imageUrl ?? '');
   }
 
   @override
@@ -50,17 +50,20 @@ class _EditCityPageState extends ConsumerState<EditCityPage> {
         imageUrl: _imageUrlController.text.trim(),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('City updated successfully!')),
-      );
-
-      Navigator.pop(context, true);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('City updated successfully!')),
+        );
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating city: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating city: $e')),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -95,8 +98,6 @@ class _EditCityPageState extends ConsumerState<EditCityPage> {
                   labelText: 'Image URL',
                   hintText: 'https://example.com/image.jpg',
                 ),
-                validator: (val) =>
-                val == null || val.isEmpty ? 'Enter image URL' : null,
                 onChanged: (_) => setState(() {}),
               ),
               SizedBox(height: 15),

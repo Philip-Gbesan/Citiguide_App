@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'attraction_details_page.dart';
+import 'users_category_attractions_page.dart';
 
-class CityAttractionsPage extends StatelessWidget {
+class UsersCityAttractionsPage extends StatelessWidget {
   final String cityId;
   final String cityName;
 
-  const CityAttractionsPage({
+  const UsersCityAttractionsPage({
     super.key,
     required this.cityId,
     required this.cityName,
@@ -15,6 +15,7 @@ class CityAttractionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cityRef = FirebaseFirestore.instance.collection('cities').doc(cityId);
+    final categoriesRef = FirebaseFirestore.instance.collection('categories');
 
     return Scaffold(
       appBar: AppBar(title: Text('$cityName Attractions')),
@@ -30,7 +31,7 @@ class CityAttractionsPage extends StatelessWidget {
           }
 
           if (!citySnapshot.hasData || !citySnapshot.data!.exists) {
-            return Center(child: Text('City not found.'));
+            return const Center(child: Text('City not found.'));
           }
 
           final cityData = citySnapshot.data!.data() as Map<String, dynamic>;
@@ -38,27 +39,21 @@ class CityAttractionsPage extends StatelessWidget {
           final cityDescription = cityData['description'] ?? '';
 
           return StreamBuilder<QuerySnapshot>(
-            stream: cityRef
-                .collection('attractions')
-                .orderBy('createdAt', descending: true)
-                .snapshots(),
-            builder: (context, attractionSnapshot) {
-              if (attractionSnapshot.connectionState == ConnectionState.waiting) {
+            stream: categoriesRef.snapshots(),
+            builder: (context, categorySnapshot) {
+              if (categorySnapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
               }
 
-              if (attractionSnapshot.hasError) {
-                return Center(
-                    child: Text('Error loading attractions: ${attractionSnapshot.error}'));
+              if (categorySnapshot.hasError) {
+                return Center(child: Text('Error loading categories: ${categorySnapshot.error}'));
               }
 
-              final attractions = attractionSnapshot.data?.docs ?? [];
+              final categories = categorySnapshot.data?.docs ?? [];
 
               return ListView(
                 padding: EdgeInsets.all(16),
                 children: [
-                  // City image
-                  // City image at the top
                   if (cityImage.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(16),
@@ -67,7 +62,6 @@ class CityAttractionsPage extends StatelessWidget {
                         height: 220,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        // show loading indicator while image loads
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return SizedBox(
@@ -82,7 +76,6 @@ class CityAttractionsPage extends StatelessWidget {
                             ),
                           );
                         },
-                        // fallback if image fails to load
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             height: 220,
@@ -92,90 +85,60 @@ class CityAttractionsPage extends StatelessWidget {
                         },
                       ),
                     ),
-
                   SizedBox(height: 12),
-
-                  // City description
                   Text(
                     cityDescription,
                     style: TextStyle(fontSize: 16, color: Colors.black87),
                   ),
-
                   SizedBox(height: 24),
                   Divider(),
-
-                  // Attractions title
                   Text(
-                    'City Attractions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Categories',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 12),
-
-                  // Attractions list
-                  if (attractions.isEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: Center(child: Text('No attractions available.')),
-                    )
+                  if (categories.isEmpty)
+                    Center(child: Text('No categories found.'))
                   else
-                    ...attractions.map((doc) {
-                      final attraction = doc.data() as Map<String, dynamic>;
+                    ...categories.map((categoryDoc) {
+                      final category = categoryDoc.data() as Map<String, dynamic>;
+                      final categoryName = category['name'] ?? 'Unknown Category';
+                      final categoryId = categoryDoc.id;
 
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AttractionDetailsPage(
-                                  cityId: cityId,
-                                  attractionId: doc.id,
-                                ),
+                      return StreamBuilder<QuerySnapshot>(
+                        stream: cityRef
+                            .collection('attractions')
+                            .where('categoryId', isEqualTo: categoryId)
+                            .snapshots(),
+                        builder: (context, attrSnapshot) {
+                          final count = attrSnapshot.data?.docs.length ?? 0;
+
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              title: Text(
+                                categoryName,
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            );
-                          },
-                          leading: attraction['imageUrl'] != null &&
-                              attraction['imageUrl'].toString().isNotEmpty
-                              ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              attraction['imageUrl'],
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: 60,
-                                  height: 60,
-                                  color: Colors.grey[300],
-                                  child: Icon(Icons.place_outlined, size: 30),
+                              subtitle: Text('$count attraction${count != 1 ? 's' : ''}'),
+                              trailing: Icon(Icons.arrow_forward_ios, size: 18),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => UserCategoryAttractionsPage(
+                                      cityId: cityId,
+                                      categoryId: categoryId,
+                                      categoryName: categoryName,
+                                    ),
+                                  ),
                                 );
                               },
                             ),
-                          )
-                              : Icon(Icons.place_outlined, size: 40),
-
-                          title: Text(
-                            attraction['name'] ?? 'Unknown Attraction',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            attraction['description'] ?? '',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                        ),
+                          );
+                        },
                       );
-                    }),
+                    }).toList(),
                 ],
               );
             },

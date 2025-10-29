@@ -12,7 +12,6 @@ class AdminDashboard extends StatelessWidget {
       try {
         await FirebaseAuth.instance.signOut();
 
-        // Navigate directly to AdminLoginPage and clear previous routes
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/adminLogin',
@@ -27,39 +26,38 @@ class AdminDashboard extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: Text('Admin Dashboard'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             tooltip: 'Sign Out',
             onPressed: signOut,
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: ListView(
           children: [
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
 
             // Welcome Message
             Text(
               'Welcome, ${user?.email ?? 'Admin'}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
             ),
 
-            const SizedBox(height: 25),
+            SizedBox(height: 25),
 
-            // ─── City Management Section ────────────────────────────────
-            const Text(
+            // City Management
+            Text(
               'City Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-
+            SizedBox(height: 10),
             _DashboardTile(
               icon: Icons.add_location_alt_outlined,
               title: 'Add New City',
@@ -73,15 +71,35 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/cityList'),
             ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: 40),
 
-            // ─── Attraction Management Section ──────────────────────────
-            const Text(
+            // Category Management
+            Text(
+              'Category Management',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            _DashboardTile(
+              icon: Icons.add,
+              title: 'Add Category',
+              color: Colors.pink.shade400,
+              onTap: () => Navigator.pushNamed(context, '/addCategory'),
+            ),
+            _DashboardTile(
+              icon: Icons.category,
+              title: 'Manage Categories',
+              color: Colors.indigo.shade400,
+              onTap: () => Navigator.pushNamed(context, '/manageCategories'),
+            ),
+
+            SizedBox(height: 40),
+
+            //Attraction Management
+            Text(
               'Attraction Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-
+            SizedBox(height: 10),
             _DashboardTile(
               icon: Icons.add_business_rounded,
               title: 'Add New Attraction',
@@ -95,15 +113,16 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/manageAttractions'),
             ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: 40),
 
-            // ─── Review Management Section ─────────────────────────────
-            const Text(
+
+
+            //Review Management
+            Text(
               'Review Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-
+            SizedBox(height: 10),
             _DashboardTile(
               icon: Icons.reviews_outlined,
               title: 'Manage Reviews',
@@ -111,15 +130,14 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/manageReviews'),
             ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: 40),
 
-            // ─── Account Settings Section ──────────────────────────────
-            const Text(
+            //  Account Settings
+            Text(
               'Account Settings',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-
+            SizedBox(height: 10),
             _DashboardTile(
               icon: Icons.logout,
               title: 'Sign Out',

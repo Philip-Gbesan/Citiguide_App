@@ -1,74 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/city_model.dart';
-import '../../services/city_service.dart';
+import '../../providers/city_provider.dart';
 import 'edit_city_page.dart';
 
-class CityListPage extends StatefulWidget {
-  const CityListPage({super.key});
+class ManageCityPage extends ConsumerWidget {
+  const ManageCityPage({super.key});
 
   @override
-  State<CityListPage> createState() => _CityListPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final citiesAsync = ref.watch(cityListProvider);
 
-class _CityListPageState extends State<CityListPage> {
-  final CityService _cityService = CityService();
-
-  void _deleteCity(String cityId) async {
-    try {
-      await _cityService.deleteCity(cityId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('City deleted successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete city: $e')),
+    void _confirmDelete(BuildContext context, String cityId, WidgetRef ref) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete this city?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text('Delete'),
+              onPressed: () async {
+                Navigator.pop(context);
+                try {
+                  final cityService = ref.read(cityServiceProvider);
+                  await cityService.deleteCity(cityId);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('City deleted successfully')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to delete city: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        ),
       );
     }
-  }
 
-  void _confirmDelete(String cityId) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Confirm Delete'),
-        content: Text('Are you sure you want to delete this city?'),
-        actions: [
-          TextButton(
-            child:  Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Delete'),
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteCity(cityId);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Cities'),
       ),
-      body: StreamBuilder<List<CityModel>>(
-        stream: _cityService.getCitiesStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final cities = snapshot.data ?? [];
-
+      body: citiesAsync.when(
+        data: (cities) {
           if (cities.isEmpty) {
             return Center(
               child: Text('No cities added yet'),
@@ -85,6 +71,7 @@ class _CityListPageState extends State<CityListPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 2,
                 child: ListTile(
                   leading: (city.imageUrl ?? '').isNotEmpty
                       ? ClipRRect(
@@ -94,10 +81,11 @@ class _CityListPageState extends State<CityListPage> {
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                      Icon(Icons.image_not_supported),
                     ),
                   )
-                      : Icon(Icons.location_city, size: 40),
-
+                      : Icon(Icons.location_city, size: 40, color: Colors.teal),
                   title: Text(
                     city.name,
                     style: TextStyle(
@@ -105,11 +93,13 @@ class _CityListPageState extends State<CityListPage> {
                       fontSize: 16,
                     ),
                   ),
-                  subtitle: Text(
-                    city.description,
+                  subtitle: (city.description ?? '').isNotEmpty
+                      ? Text(
+                    city.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                  ),
+                  )
+                      : null,
                   trailing: PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'edit') {
@@ -120,11 +110,11 @@ class _CityListPageState extends State<CityListPage> {
                           ),
                         );
                       } else if (value == 'delete') {
-                        _confirmDelete(city.id);
+                        _confirmDelete(context, city.id, ref);
                       }
                     },
                     itemBuilder: (_) => [
-                       PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
@@ -151,6 +141,8 @@ class _CityListPageState extends State<CityListPage> {
             },
           );
         },
+        loading: () => Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error loading cities: $e')),
       ),
     );
   }

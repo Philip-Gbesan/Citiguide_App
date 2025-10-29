@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final cityServiceProvider = Provider<CityService>((ref) => CityService());
 
-final citiesProvider = StreamProvider<List<CityModel>>((ref) {
+final cityListProvider = StreamProvider<List<CityModel>>((ref) {
   final service = ref.watch(cityServiceProvider);
   return service.getCitiesStream();
 } );

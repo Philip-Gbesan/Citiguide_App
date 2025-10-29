@@ -18,6 +18,7 @@ class _LoadingScreenState extends State<LoadingScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -30,6 +31,10 @@ class _LoadingScreenState extends State<LoadingScreen>
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
     _controller.forward();
@@ -56,21 +61,21 @@ class _LoadingScreenState extends State<LoadingScreen>
     if (!mounted) return;
 
     if (userModel == null) {
-      _navigateWithFade(RoleSelectionPage());
+      _navigateWithFade(const RoleSelectionPage());
       return;
     }
 
     if (userModel.role == 'admin') {
-      _navigateWithFade(AdminDashboard());
+      _navigateWithFade(const AdminDashboard());
     } else {
-      _navigateWithFade(UserDashboard());
+      _navigateWithFade(const UserDashboard());
     }
   }
 
   void _navigateWithFade(Widget page) {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: Duration(milliseconds: 700),
+        transitionDuration: const Duration(milliseconds: 700),
         pageBuilder: (_, __, ___) => page,
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);
@@ -90,27 +95,48 @@ class _LoadingScreenState extends State<LoadingScreen>
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Color(0xFF007BFF),
+      backgroundColor: const Color(0xFF007BFF),
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/logo1.png',
-                height: screenHeight * 0.25,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: 15),
-              Text(
-                "Discover • Explore • Connect",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo with fallback
+                Image.asset(
+                  'assets/images/logo1.png',
+                  height: screenHeight * 0.25,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: screenHeight * 0.25,
+                      width: screenHeight * 0.25,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(Icons.location_city, size: 80, color: Colors.white70),
+                    );
+                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 15),
+                const Text(
+                  "Discover • Explore • Connect",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Optional progress indicator
+                const CircularProgressIndicator(
+                  color: Colors.white70,
+                ),
+              ],
+            ),
           ),
         ),
       ),
