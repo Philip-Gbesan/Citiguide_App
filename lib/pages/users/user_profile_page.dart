@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_page.dart';
-import 'package:citiguide_app/pages/users/user_preferences_page.dart';
+import 'package:citiguide_app/pages/users/user_favorites_page.dart';
 import '../auth/user_login_page.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -130,7 +130,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => UserPreferencesPage()),
+                      builder: (_) => UserFavoritesPage()),
                 );
               },
             ),

@@ -1,4 +1,5 @@
 import 'package:citiguide_app/pages/users/profile_settings_page.dart';
+import 'package:citiguide_app/pages/users/user_favorites_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
@@ -85,9 +86,9 @@ class _UserDashboardState extends State<UserDashboard> {
   Widget _buildPage() {
     switch (_selectedIndex) {
       case 0: // Search
-        return _buildSearchPage();
+        return _buildCitiAppPage();
       case 1: // Favorites
-        return const Center(child: Text('Favorites Page'));
+        return UserFavoritesPage();
       case 2: // CitiApp (Home)
         return _buildCitiAppPage();
       case 3: // Settings

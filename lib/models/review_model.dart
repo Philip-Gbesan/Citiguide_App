@@ -7,7 +7,8 @@ class ReviewModel {
   final double rating;
   final String comment;
   final bool approved;
-  final Timestamp createdAt;
+  final DateTime createdAt; // ✅ Use DateTime here
+  final Map<String, dynamic> likes; // ✅ Added likes map
 
   ReviewModel({
     required this.id,
@@ -17,10 +18,12 @@ class ReviewModel {
     required this.comment,
     required this.approved,
     required this.createdAt,
+    required this.likes,
   });
 
   factory ReviewModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
     return ReviewModel(
       id: doc.id,
       userId: data['userId'] ?? '',
@@ -28,7 +31,10 @@ class ReviewModel {
       rating: (data['rating'] ?? 0).toDouble(),
       comment: data['comment'] ?? '',
       approved: data['approved'] ?? false,
-      createdAt: data['createdAt'] ?? Timestamp.now(),
+      createdAt: (data['createdAt'] is Timestamp)
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      likes: Map<String, dynamic>.from(data['likes'] ?? {}),
     );
   }
 
@@ -39,7 +45,8 @@ class ReviewModel {
       'rating': rating,
       'comment': comment,
       'approved': approved,
-      'createdAt': createdAt,
+      'createdAt': Timestamp.fromDate(createdAt), // ✅ Converts to Timestamp
+      'likes': likes,
     };
   }
 }

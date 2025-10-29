@@ -1,1 +1,3 @@
-{"database":{"rules":"database.rules.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"citi-guide-6a2b1","appId":"1:496574485799:android:ce81e91afdf7cec623c502","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"citi-guide-6a2b1","configurations":{"android":"1:496574485799:android:ce81e91afdf7cec623c502","web":"1:496574485799:web:fd544bea4e79fb7a23c502"}}}}}}
+{"firestore": {
+  "rules": "firestore.rules"
+},"database":{"rules":"database.rules.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"citi-guide-6a2b1","appId":"1:496574485799:android:ce81e91afdf7cec623c502","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"citi-guide-6a2b1","configurations":{"android":"1:496574485799:android:ce81e91afdf7cec623c502","web":"1:496574485799:web:fd544bea4e79fb7a23c502"}}}}}}

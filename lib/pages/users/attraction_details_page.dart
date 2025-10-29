@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/review_service.dart';
 import '../../models/review_model.dart';
-import 'add_review_widget.dart';
+import 'add_review_page.dart';
 
 class AttractionDetailsPage extends StatefulWidget {
   final String cityId;
@@ -22,13 +22,28 @@ class AttractionDetailsPage extends StatefulWidget {
 
 class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
   final user = FirebaseAuth.instance.currentUser;
+  final ReviewService _reviewService = ReviewService();
+
   bool _isFavorite = false;
   bool _loadingFavorite = true;
+  String? _cityName;
 
   @override
   void initState() {
     super.initState();
+    _loadCityName();
     _checkFavorite();
+  }
+
+  Future<void> _loadCityName() async {
+    final cityDoc = await FirebaseFirestore.instance
+        .collection('cities')
+        .doc(widget.cityId)
+        .get();
+
+    setState(() {
+      _cityName = cityDoc.data()?['name'] ?? 'Unknown City';
+    });
   }
 
   Future<void> _checkFavorite() async {
@@ -65,25 +80,42 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
 
     if (_isFavorite) {
       await favRef.delete();
-      setState(() => _isFavorite = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Removed from favorites')),
+        const SnackBar(content: Text('Removed from favorites')),
       );
     } else {
       await favRef.set({
         'cityId': widget.cityId,
-        'cityName': attractionData['cityName'] ?? 'Unknown City',
+        'cityName': _cityName ?? 'Unknown City',
         'attractionName': attractionData['name'] ?? 'Unnamed Attraction',
         'imageUrl': attractionData['imageUrl'] ?? '',
         'createdAt': FieldValue.serverTimestamp(),
       });
-      setState(() => _isFavorite = true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Added to favorites')),
       );
     }
 
-    setState(() => _loadingFavorite = false);
+    setState(() {
+      _isFavorite = !_isFavorite;
+      _loadingFavorite = false;
+    });
+  }
+
+  Future<void> _toggleLike(String reviewId, Map<String, dynamic>? likes) async {
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to like reviews')),
+      );
+      return;
+    }
+
+    await _reviewService.toggleLike(
+      cityId: widget.cityId,
+      attractionId: widget.attractionId,
+      reviewId: reviewId,
+      userId: user!.uid,
+    );
   }
 
   void _launchPhone(String phone) async {
@@ -92,7 +124,8 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
   }
 
   void _openInMap(double lat, double lng) async {
-    final Uri uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    final Uri uri =
+    Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
@@ -105,16 +138,16 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
         .doc(widget.attractionId);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Attraction Details')),
+      appBar: AppBar(title: const Text('Attraction Details')),
       body: StreamBuilder<DocumentSnapshot>(
         stream: attractionRef.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text('Attraction not found.'));
+            return const Center(child: Text('Attraction not found.'));
           }
 
           final attraction = snapshot.data!.data() as Map<String, dynamic>;
@@ -127,11 +160,11 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
           final longitude = (attraction['longitude'] ?? 0).toString();
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image with favorite
+                // IMAGE + FAVORITE BUTTON
                 if (imageUrl.isNotEmpty)
                   Stack(
                     children: [
@@ -142,11 +175,11 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                           width: double.infinity,
                           height: 220,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: double.infinity,
+                          errorBuilder: (_, __, ___) => Container(
                             height: 220,
                             color: Colors.grey[300],
-                            child: Icon(Icons.broken_image, size: 80, color: Colors.white70),
+                            child: const Icon(Icons.broken_image,
+                                size: 80, color: Colors.white70),
                           ),
                         ),
                       ),
@@ -154,121 +187,161 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                         top: 12,
                         right: 12,
                         child: _loadingFavorite
-                            ? SizedBox(
+                            ? const SizedBox(
                           width: 28,
                           height: 28,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
                         )
                             : GestureDetector(
                           onTap: () => _toggleFavorite(attraction),
                           child: Icon(
-                            _isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: _isFavorite ? Colors.red : Colors.white,
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: _isFavorite
+                                ? Colors.red
+                                : Colors.white,
                             size: 32,
                           ),
                         ),
                       ),
                     ],
                   ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                // Name
-                Text(name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                SizedBox(height: 12),
+                // NAME
+                Text(name,
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
 
-                // Description
-                Text(description, style: TextStyle(fontSize: 16, color: Colors.black87)),
-                SizedBox(height: 20),
+                // DESCRIPTION
+                Text(description,
+                    style: const TextStyle(
+                        fontSize: 16, color: Colors.black87)),
+                const SizedBox(height: 20),
 
-                // Address
+                // ADDRESS
                 if (address.isNotEmpty)
                   Row(
                     children: [
-                      Icon(Icons.home_outlined, color: Colors.blue),
-                      SizedBox(width: 8),
-                      Expanded(child: Text(address, style: TextStyle(fontSize: 15))),
+                      const Icon(Icons.home_outlined, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(address)),
                     ],
                   ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-                // Phone
+                // PHONE
                 if (phone.isNotEmpty)
                   InkWell(
                     onTap: () => _launchPhone(phone),
                     child: Row(
                       children: [
-                        Icon(Icons.phone, color: Colors.green),
-                        SizedBox(width: 8),
+                        const Icon(Icons.phone, color: Colors.green),
+                        const SizedBox(width: 8),
                         Text(
                           phone,
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.blueAccent, decoration: TextDecoration.underline),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueAccent,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                // Coordinates
+                // COORDINATES + MAP
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, color: Colors.red),
-                    SizedBox(width: 8),
+                    const Icon(Icons.location_on_outlined, color: Colors.red),
+                    const SizedBox(width: 8),
                     Text('Lat: $latitude, Lng: $longitude'),
                   ],
                 ),
-                SizedBox(height: 12),
-
-                // Open in Google Maps
+                const SizedBox(height: 12),
                 ElevatedButton.icon(
                   onPressed: () {
                     final lat = double.tryParse(latitude);
                     final lng = double.tryParse(longitude);
                     if (lat != null && lng != null) _openInMap(lat, lng);
                   },
-                  icon: Icon(Icons.map),
-                  label: Text('Open in Google Maps'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                  ),
+                  icon: const Icon(Icons.map),
+                  label: const Text('Open in Google Maps'),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                // Reviews
+                // REVIEWS SECTION
                 StreamBuilder<List<ReviewModel>>(
-                  stream: ReviewService().getApprovedReviews(widget.cityId, widget.attractionId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                  stream: _reviewService.getApprovedReviews(
+                    widget.cityId,
+                    widget.attractionId,
+                  ),
+                  builder: (context, reviewSnapshot) {
+                    if (reviewSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (snapshot.hasError) {
+                    if (reviewSnapshot.hasError) {
                       return Text(
-                        'Error loading reviews: ${snapshot.error}',
-                        style: TextStyle(color: Colors.red),
+                        'Error loading reviews: ${reviewSnapshot.error}',
+                        style: const TextStyle(color: Colors.red),
                       );
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return  Text('No approved reviews yet.');
+                    if (!reviewSnapshot.hasData ||
+                        reviewSnapshot.data!.isEmpty) {
+                      return const Text('No approved reviews yet.');
                     }
 
-                    final reviews = snapshot.data!;
+                    final reviews = reviewSnapshot.data!;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: reviews.map((r) {
+                        final likes = r.likes;
+                        final likeCount = likes.length;
+                        final hasLiked =
+                            user != null && likes.containsKey(user!.uid);
+
                         return Card(
-                          margin: EdgeInsets.symmetric(vertical: 6),
+                          margin: const EdgeInsets.symmetric(vertical: 6),
                           child: ListTile(
                             title: Text(r.userName),
-                            subtitle: Text(r.comment),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(r.comment),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () =>
+                                          _toggleLike(r.id, likes),
+                                      icon: Icon(
+                                        hasLiked
+                                            ? Icons.thumb_up : Icons.thumb_up_outlined,
+                                        color: hasLiked
+                                            ? Colors.blueAccent
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    Text('$likeCount likes'),
+                                  ],
+                                ),
+                              ],
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: List.generate(
                                 5,
                                     (i) => Icon(
-                                  i < r.rating ? Icons.star : Icons.star_border,
+                                  i < r.rating
+                                      ? Icons.star
+                                      : Icons.star_border,
                                   color: Colors.amber,
                                   size: 20,
                                 ),
@@ -281,9 +354,13 @@ class _AttractionDetailsPageState extends State<AttractionDetailsPage> {
                   },
                 ),
 
+                const SizedBox(height: 20),
 
-                SizedBox(height: 20),
-                AddReviewWidget(cityId: widget.cityId, attractionId: widget.attractionId),
+                // ADD REVIEW
+                AddReviewWidget(
+                  cityId: widget.cityId,
+                  attractionId: widget.attractionId,
+                ),
               ],
             ),
           );

@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class UserPreferencesPage extends StatefulWidget {
-  const UserPreferencesPage({super.key});
+class UserFavoritesPage extends StatefulWidget {
+  const UserFavoritesPage({super.key});
 
   @override
-  State<UserPreferencesPage> createState() => _UserPreferencesPageState();
+  State<UserFavoritesPage> createState() => _UserFavoritesPageState();
 }
 
-class _UserPreferencesPageState extends State<UserPreferencesPage> {
+class _UserFavoritesPageState extends State<UserFavoritesPage> {
   final user = FirebaseAuth.instance.currentUser;
   Map<String, bool> _loadingFavorites = {};
 
-  Future<void> _toggleFavorite(String attractionId) async {
+  Future<void> _toggleFavorite(Map<String, dynamic> attractionData) async {
     if (user == null) return;
 
+    final attractionId = attractionData['id'];
     setState(() => _loadingFavorites[attractionId] = true);
 
     final favRef = FirebaseFirestore.instance
@@ -32,17 +33,20 @@ class _UserPreferencesPageState extends State<UserPreferencesPage> {
         const SnackBar(content: Text('Removed from favorites')),
       );
     } else {
-      // We could add attraction data if needed, but here we just keep it simple
       await favRef.set({
+        'attractionName': attractionData['name'],
+        'imageUrl': attractionData['imageUrl'],
+        'cityName': attractionData['cityName'],
         'createdAt': FieldValue.serverTimestamp(),
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Added to favorites')),
+        const SnackBar(content: Text('Added to favorites')),
       );
     }
 
     setState(() => _loadingFavorites[attractionId] = false);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +163,13 @@ class _UserPreferencesPageState extends State<UserPreferencesPage> {
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
                     )
                         : GestureDetector(
-                      onTap: () => _toggleFavorite(attractionId),
+                            onTap: () => _toggleFavorite({
+                            'id': attractionId,
+                            'name': name,
+                            'imageUrl': imageUrl,
+                            'cityName': cityName,
+                            }),
+
                       child: Icon(
                         Icons.favorite,
                         color: Colors.red,

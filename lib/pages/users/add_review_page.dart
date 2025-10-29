@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/review_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../providers/review_provider.dart';
+import '../../models/review_model.dart';
 
 class AddReviewWidget extends ConsumerStatefulWidget {
   final String cityId;
@@ -21,8 +23,28 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
   final _formKey = GlobalKey<FormState>();
   final _commentController = TextEditingController();
   double _rating = 3;
-
   bool _isSubmitting = false;
+
+  Future<String> _getUserName(User user) async {
+    if (user.displayName != null && user.displayName!.isNotEmpty) {
+      return user.displayName!;
+    }
+
+    final doc =
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+    if (doc.exists && doc.data() != null) {
+      final data = doc.data()!;
+      if (data['name'] != null && data['name'].toString().isNotEmpty) {
+        return data['name'];
+      }
+      if (data['username'] != null && data['username'].toString().isNotEmpty) {
+        return data['username'];
+      }
+    }
+
+    return 'Anonymous';
+  }
 
   Future<void> _submitReview() async {
     if (!_formKey.currentState!.validate()) return;
@@ -40,14 +62,21 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
         return;
       }
 
-      await service.addReview(
-        cityId: widget.cityId,
-        attractionId: widget.attractionId,
+      final userName = await _getUserName(user);
+
+      final review = ReviewModel(
+        id: '',
         userId: user.uid,
-        userName: user.displayName ?? 'Anonymous',
+        userName: userName,
         rating: _rating,
         comment: _commentController.text.trim(),
+        approved: false,
+        createdAt: DateTime.now(), // ✅ Works perfectly now
+        likes: {},
       );
+
+
+      await service.addReview(widget.cityId, widget.attractionId, review);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -69,17 +98,17 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Leave a Review',
+              const Text('Leave a Review',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 children: List.generate(5, (index) {
                   final starIndex = index + 1;
@@ -94,7 +123,7 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
               ),
               TextFormField(
                 controller: _commentController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Write your comment',
                   border: OutlineInputBorder(),
                 ),
@@ -102,13 +131,13 @@ class _AddReviewWidgetState extends ConsumerState<AddReviewWidget> {
                 validator: (val) =>
                 val == null || val.isEmpty ? 'Please write something' : null,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _isSubmitting
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
                 onPressed: _submitReview,
-                icon: Icon(Icons.send),
-                label: Text('Submit Review'),
+                icon: const Icon(Icons.send),
+                label: const Text('Submit Review'),
               ),
             ],
           ),
