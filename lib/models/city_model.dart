@@ -5,29 +5,33 @@ class CityModel {
   final String name;
   final String description;
   final String imageUrl;
+  final String country;
 
   CityModel({
     required this.id,
     required this.name,
     required this.description,
     required this.imageUrl,
+    this.country = '',
   });
 
-  factory CityModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory CityModel.fromJson(Map<String, dynamic> json) {
     return CityModel(
-      id: doc.id,
-      name: data['name'] ?? '',
-      description: data['description'] ?? '',
-      imageUrl: data['imageUrl'] ?? '',
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      country: json['country'] ?? '',
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'description': description,
       'imageUrl': imageUrl,
+      'country': country,
     };
   }
 }

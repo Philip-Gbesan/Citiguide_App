@@ -100,7 +100,7 @@ class _AddCityPageState extends ConsumerState<AddCityPage> {
                     height: 150,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
-                    Text('Invalid image URL'),
+                        Text('Invalid image URL'),
                   ),
                 ),
               SizedBox(height: 25),
