@@ -35,8 +35,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       await sendReset(email);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Password reset email sent successfully! Check your inbox or spam'),
+        const SnackBar(
+          content: Text('Password reset email sent! Check your inbox or spam.'),
         ),
       );
 
@@ -50,43 +50,89 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     }
   }
 
+  void _goBackToLogin() {
+    Navigator.pop(context); // back to previous login page
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      appBar: AppBar(title: Text('Forgot Password')),
-      body: Padding(
-        padding: EdgeInsets.all(16),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: screenHeight * 0.1),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            // Logo
+            Image.asset(
+              'assets/images/logo.png',
+              height: screenHeight * 0.18,
+            ),
+            const SizedBox(height: 24),
+
+            // Page title
+            const Text(
+              'Forgot Password',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF007BFF),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Instruction text
+            const Text(
               'Enter your registered email address and we will send you a password reset link.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 15, color: Colors.black54),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 28),
+
+            // Email field
             TextField(
               controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email Address',
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              keyboardType: TextInputType.emailAddress,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
+
+            // Send reset button
             SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _sendResetEmail,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF007BFF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
                 child: _isLoading
-                    ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
+                    ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 )
-                    : Text('Send Reset Link'),
+                    : const Text(
+                  'Send Reset Link',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Back to login link
+            TextButton(
+              onPressed: _goBackToLogin,
+              child: const Text(
+                '← Back to Login',
+                style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
               ),
             ),
           ],

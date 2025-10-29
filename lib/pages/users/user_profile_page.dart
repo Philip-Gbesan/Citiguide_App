@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_page.dart';
 import 'package:citiguide_app/pages/users/user_preferences_page.dart';
-import '../auth/login_page.dart';
+import '../auth/user_login_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -33,14 +33,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
 
     try {
-      final doc =
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final data = doc.data();
 
       if (data != null) {
         setState(() {
           _name = data['name'] ?? 'Unknown User';
-          _profileImageUrl = data['imageUrl'] ?? '';
+          _profileImageUrl = data['profileImageUrl'] ?? '';
           _email = data['email'] ?? '';
           _isLoading = false;
         });
@@ -57,12 +56,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
+
   void _signOut() async {
     await FirebaseAuth.instance.signOut();
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
+        MaterialPageRoute(builder: (_) =>  UserLoginPage()),
             (route) => false,
       );
     }

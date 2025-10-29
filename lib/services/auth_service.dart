@@ -11,7 +11,7 @@ class AuthService {
     required String name,
     required String email,
     required String password,
-    required String role, // 'admin' or 'user'
+    required String role,
   }) async {
     try {
       UserCredential cred = await _auth.createUserWithEmailAndPassword(
@@ -19,7 +19,7 @@ class AuthService {
         password: password,
       );
 
-      UserModel newUser = UserModel(
+      final newUser = UserModel(
         uid: cred.user!.uid,
         name: name,
         email: email,
@@ -42,17 +42,17 @@ class AuthService {
         password: password,
       );
 
-      DocumentSnapshot userDoc =
-      await _firestore.collection('users').doc(cred.user!.uid).get();
+      final doc = await _firestore.collection('users').doc(cred.user!.uid).get();
+      if (!doc.exists) return null;
 
-      return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
     } on FirebaseAuthException catch (e) {
       print('Login error: ${e.message}');
       return null;
     }
   }
 
-  // Forgot password
+  // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
@@ -60,11 +60,9 @@ class AuthService {
   // Get user data
   Future<UserModel?> getUserData(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
-      }
-      return null;
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (!doc.exists) return null;
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
     } catch (e) {
       print('Error fetching user: $e');
       return null;
@@ -74,5 +72,51 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  // Update name
+  Future<void> updateName(String uid, String name) async {
+    await _firestore.collection('users').doc(uid).update({'name': name});
+  }
+
+  // Update profile image (URL only)
+  Future<void> updateImage(String uid, String imageUrl) async {
+    await _firestore.collection('users').doc(uid).update({'profileImageUrl': imageUrl});
+  }
+
+  // Update email
+  // Future<void> updateEmail(String uid, String newEmail) async {
+  //   final user = _auth.currentUser;
+  //   if (user == null) throw Exception('No user logged in');
+  //
+  //   try {
+  //     // This works for mobile & web
+  //     await user.updateEmail(newEmail);
+  //
+  //     // Update Firestore after successful email change
+  //     await _firestore.collection('users').doc(uid).update({'email': newEmail});
+  //   } on FirebaseAuthException catch (e) {
+  //     if (e.code == 'requires-recent-login') {
+  //       throw Exception('Please re-login before updating email.');
+  //     } else {
+  //       throw Exception('Error updating email: ${e.message}');
+  //     }
+  //   }
+  // }
+
+  // Update password
+  Future<void> updatePassword(String newPassword) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('No user logged in');
+
+    try {
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw Exception('Please re-login before updating password.');
+      } else {
+        throw Exception('Error updating password: ${e.message}');
+      }
+    }
   }
 }

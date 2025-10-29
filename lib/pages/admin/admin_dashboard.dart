@@ -6,47 +6,59 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
 
-    void signOut() async {
-      await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacementNamed(context, '/login');
+    Future<void> signOut() async {
+      try {
+        await FirebaseAuth.instance.signOut();
+
+        // Navigate directly to AdminLoginPage and clear previous routes
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/adminLogin',
+              (route) => false,
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error signing out: $e')),
+        );
+      }
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Admin Dashboard'),
+        title: const Text('Admin Dashboard'),
         actions: [
           IconButton(
-            onPressed: signOut,
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             tooltip: 'Sign Out',
+            onPressed: signOut,
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-            //  Welcome Message
+            // Welcome Message
             Text(
               'Welcome, ${user?.email ?? 'Admin'}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
             ),
 
-            SizedBox(height: 25),
+            const SizedBox(height: 25),
 
-            //  City Management Section
-            Text(
+            // ─── City Management Section ────────────────────────────────
+            const Text(
               'City Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
             _DashboardTile(
               icon: Icons.add_location_alt_outlined,
@@ -61,14 +73,14 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/cityList'),
             ),
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
 
-            //  Attraction Management Section
-            Text(
+            // ─── Attraction Management Section ──────────────────────────
+            const Text(
               'Attraction Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
             _DashboardTile(
               icon: Icons.add_business_rounded,
@@ -83,14 +95,14 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/manageAttractions'),
             ),
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
 
-            //  Review Management Section
-            Text(
+            // ─── Review Management Section ─────────────────────────────
+            const Text(
               'Review Management',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
             _DashboardTile(
               icon: Icons.reviews_outlined,
@@ -99,14 +111,14 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/manageReviews'),
             ),
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
 
-            //Account Settings Section
-            Text(
+            // ─── Account Settings Section ──────────────────────────────
+            const Text(
               'Account Settings',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
             _DashboardTile(
               icon: Icons.logout,
@@ -140,7 +152,7 @@ class _DashboardTile extends StatelessWidget {
       color: color.withOpacity(0.1),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color,
@@ -148,9 +160,9 @@ class _DashboardTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
-        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 18),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
         onTap: onTap,
       ),
     );
